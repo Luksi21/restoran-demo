@@ -281,17 +281,30 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px;
+    min-width: 0;
   }
   .panel-head {
     display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
     margin-bottom: 16px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
   }
   .panel-title {
     font-family: 'Manrope', sans-serif;
     font-weight: 700; font-size: 15px;
     display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .panel-sub-badge {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.04);
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
   }
 
   /* RESERVATIONS LIST */
@@ -326,12 +339,23 @@
     font-weight: 700; font-size: 16px;
     text-align: center;
     min-width: 56px;
+    flex-shrink: 0;
   }
   .res-time small { display: block; font-size: 10px; color: var(--text-muted); font-weight: 500; }
-  .res-info { min-width: 0; }
-  .res-name { font-weight: 600; margin-bottom: 2px; font-size: 14px; }
-  .res-meta { font-size: 12px; color: var(--text-dim); display: flex; gap: 10px; flex-wrap: wrap; }
-  .res-meta span { display: flex; align-items: center; gap: 4px; }
+  .res-info { min-width: 0; overflow: hidden; }
+  .res-name {
+    font-weight: 600; margin-bottom: 2px; font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .res-meta {
+    font-size: 12px; color: var(--text-dim);
+    display: flex; gap: 10px; flex-wrap: wrap;
+    min-width: 0;
+  }
+  .res-meta span {
+    display: flex; align-items: center; gap: 4px;
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .res-table {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border);
@@ -339,6 +363,8 @@
     border-radius: 6px;
     font-weight: 600;
     font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .res-source {
     width: 28px; height: 28px;
@@ -360,19 +386,23 @@
     background-size: 40px 40px;
     border: 1px solid var(--border);
     border-radius: 10px;
-    height: 360px;
+    aspect-ratio: 16 / 11;
+    width: 100%;
+    min-height: 280px;
     overflow: hidden;
   }
   .table {
     position: absolute;
-    border-radius: 10px;
+    border-radius: 8px;
     background: rgba(255,255,255,0.04);
     border: 1.5px solid var(--border-strong);
     display: grid; place-items: center;
     cursor: pointer;
     transition: all 0.2s;
     color: var(--text-dim);
-    font-weight: 600; font-size: 12px;
+    font-weight: 600;
+    font-size: clamp(10px, 1.4vw, 13px);
+    line-height: 1;
   }
   .table:hover { transform: scale(1.05); z-index: 5; }
   .table.round { border-radius: 50%; }
@@ -825,7 +855,7 @@
       <div class="panel-head">
         <div class="panel-title">
           📋 Današnje rezervacije
-          <span style="font-size: 11px; font-weight: 500; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 3px 8px; border-radius: 999px;">Kod Pere · Centar</span>
+          <span class="panel-sub-badge">Kod Pere · Centar</span>
         </div>
         <span style="font-size: 12px; color: var(--text-dim);" id="live-count">14 termina</span>
       </div>
@@ -1124,21 +1154,27 @@
     { time: '21:30', name: 'Vidović', people: 2, table: 'Stol 1', source: 'ai', note: 'Vegan menu' },
   ];
 
-  // Floor plan tables (positioned absolutely in % within the floor-plan div)
+  // Floor plan tables — all coordinates and sizes are PERCENTAGES of the floor plan box
   const tables = [
-    { id: 1, x: 8,  y: 10, w: 60, h: 60, status: 'occupied', shape: 'round' },
-    { id: 2, x: 22, y: 10, w: 60, h: 60, status: 'free', shape: 'round' },
-    { id: 3, x: 36, y: 10, w: 60, h: 60, status: 'reserved', shape: 'round' },
-    { id: 4, x: 50, y: 10, w: 60, h: 60, status: 'occupied', shape: 'round' },
-    { id: 5, x: 64, y: 10, w: 60, h: 60, status: 'free', shape: 'round' },
-    { id: 6, x: 8,  y: 38, w: 80, h: 50, status: 'occupied' },
-    { id: 7, x: 30, y: 38, w: 80, h: 50, status: 'reserved' },
-    { id: 8, x: 52, y: 38, w: 80, h: 50, status: 'occupied' },
-    { id: 9, x: 75, y: 38, w: 60, h: 50, status: 'free' },
-    { id: 10, x: 8, y: 65, w: 100, h: 60, status: 'occupied' },
-    { id: 11, x: 36, y: 65, w: 100, h: 60, status: 'reserved' },
-    { id: 12, x: 64, y: 65, w: 100, h: 60, status: 'occupied' },
-    { id: 'V', x: 86, y: 6, w: 100, h: 100, status: 'reserved', label: 'VIP' },
+    // Top row — round 2-tops
+    { id: 1, x: 4,  y: 8,  w: 9,  h: 14, status: 'occupied', shape: 'round' },
+    { id: 2, x: 16, y: 8,  w: 9,  h: 14, status: 'free',     shape: 'round' },
+    { id: 3, x: 28, y: 8,  w: 9,  h: 14, status: 'reserved', shape: 'round' },
+    { id: 4, x: 40, y: 8,  w: 9,  h: 14, status: 'occupied', shape: 'round' },
+    { id: 5, x: 52, y: 8,  w: 9,  h: 14, status: 'free',     shape: 'round' },
+    // VIP separate room on the right
+    { id: 'V', x: 72, y: 8, w: 24, h: 30, status: 'reserved', label: 'VIP' },
+    // Middle row — 4-tops
+    { id: 6, x: 4,  y: 32, w: 13, h: 18, status: 'occupied' },
+    { id: 7, x: 20, y: 32, w: 13, h: 18, status: 'reserved' },
+    { id: 8, x: 36, y: 32, w: 13, h: 18, status: 'occupied' },
+    { id: 9, x: 52, y: 32, w: 13, h: 18, status: 'free'     },
+    // Bottom row — 6-tops / booths
+    { id: 10, x: 4,  y: 60, w: 20, h: 22, status: 'occupied' },
+    { id: 11, x: 27, y: 60, w: 20, h: 22, status: 'reserved' },
+    { id: 12, x: 50, y: 60, w: 20, h: 22, status: 'occupied' },
+    // Bar / kitchen pass at bottom right
+    { id: 'B', x: 73, y: 46, w: 23, h: 36, status: 'free', label: 'Šank' },
   ];
 
   const hourData = [
@@ -1225,7 +1261,7 @@
     const fp = document.getElementById('floor-plan');
     fp.innerHTML = tables.map(t => `
       <div class="table ${t.status} ${t.shape || ''}"
-           style="left: ${t.x}%; top: ${t.y}%; width: ${t.w}px; height: ${t.h}px;">
+           style="left: ${t.x}%; top: ${t.y}%; width: ${t.w}%; height: ${t.h}%;">
         ${t.label || t.id}
       </div>
     `).join('');
